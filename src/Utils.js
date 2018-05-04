@@ -51,6 +51,8 @@ module.exports = {
                 renamed.category = message.categorie;
             } else if (key === 'rol') {
                 renamed.role = message.rol;
+            } else if (key === 'kanaal') {
+                renamed.channel = message.kanaal;
             } else {
                 renamed[key] = message[key];
             }
@@ -69,6 +71,10 @@ module.exports = {
         }
 
         return renamed;
+    },
+
+    getNameOfMemberObj(member) {
+        return (member.nickname) ? member.nickname : member.user.username;
     },
 
     formatChannelName(ch) {

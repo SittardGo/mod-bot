@@ -1,8 +1,9 @@
 /* jshint esversion: 6 */ 
-const fs           = require('fs');
-const SittardGoBot = require('sittard-go-bot');
-const Logger       = require('./Logger');
-const ChannelSubscriber  = require('./ChannelSubscriber');
+const fs                = require('fs');
+const SittardGoBot      = require('sittard-go-bot');
+const Logger            = require('./Logger');
+const ChannelSubscriber = require('./ChannelSubscriber');
+const Bellboy           = require('./Bellboy');
 
 const DEV_MODE = true;
 
@@ -37,8 +38,15 @@ class ModBot {
         .then(_ => {
             // // Set the visibility of the bot
             this.bot.getClient().user.setStatus(BOT_STATUS);
+            
+            // Logger module
             Logger.messageLog(this.bot);
+
+            // Channel subscriber module
             new ChannelSubscriber(this.bot, this.config['channel-ids']);
+
+            // Lobby (Bellboy) module
+            new Bellboy(this.bot, this.config);
 
         })
         .catch(e => console.log('error', e));

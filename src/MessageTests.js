@@ -5,6 +5,10 @@ const regex = {
     createsub: /^\s*!create/,
     // Remove a subscribe channel/role
     removesub: /^\s*!remove/,
+    // Lobby command
+    lobbycmd: /^!/,
+    // Join from lobby command
+    joincmd: /^!\s*join\s*(sittard|geleen)/i,
     escape: /[\-\[\]\/\{\}\(\)\*\+\?\.\\\^\$\|]/g,
 };
 
