@@ -1,4 +1,6 @@
 /* jshint esversion: 6 */ 
+
+// TODO: Adding geleen / sittard role = message in region main channel
 const fs           = require('fs');
 
 const Logger       = require('./Logger');
@@ -6,27 +8,22 @@ const MessageTests = require('./MessageTests');
 const Utils        = require('./Utils');
 
 const WELCOME_FILE = __dirname+'/welcome_message';
-const LEAVE_MSG    = '🚫 {NAME} heeft de server verlaten';
 
 class Bellboy {
     constructor(bot, config) {
         this.bot = bot;
         this.modChannel = config['channel-ids'].moderators;
         this.lobbyChannel = config['channel-ids'].lobby;
+        this.regionSittardChannel = config['channel-ids']['region-sittard'];
+        this.regionGeleenChannel = config['channel-ids']['region-geleen'];
         this.modNames = config['mod-role-names'];
-        this.inviter = config['inviter-role-names'];
+        this.inviters = config['inviter-role-names'];
 
         // Member joined
         this.bot.getClient().on(
             'guildMemberAdd',
             this.sendAWarmWelcome.bind(this)
         );
-        
-        // Member left
-        this.bot.getClient().on(
-            'guildMemberRemove',
-            this.announceRemoval.bind(this)
-        ); 
 
         // Member command
         this.bot.getClient().on(
@@ -44,14 +41,6 @@ class Bellboy {
         
     }
 
-    announceRemoval(member) {
-        const name = Utils.getNameOfMemberObj(member);
-        this.bot.send(
-            this.modChannel,
-            LEAVE_MSG.replace('{NAME}', name)
-        );
-    }
-
     roleCommand(message) {
         if (message.channel.id !== this.lobbyChannel) {
             return;
@@ -60,7 +49,6 @@ class Bellboy {
         if (!MessageTests.is('lobbycmd', message.content)) {
             return;
         }
-        console.log('lobby do role');
 
         let team = false;
         switch (message.content.toLowerCase().trim()) {
@@ -70,19 +58,21 @@ class Bellboy {
         }
 
         if (team) {
-            return this.setTeam(team, message.member);
+            return this.setTeam(team, message);
         }
 
-        // if (!MessageTests.is('joincmd', message.content)) {
-        //     return;
-        // }
+        if (!MessageTests.is('joincmd', message.content)) {
+            return;
+        }
 
-        // Test if user has permition
+        let inviteFromInviter = false;
         const authRole = message.member.roles.filter(r => {
+            console.log(r.name.toLowerCase())
             if (this.modNames.includes(r.name.toLowerCase())) {
                 return true;
             }
-            if (this.inviter.includes(r.name.toLowerCase())) {
+            if (this.inviters.includes(r.name.toLowerCase())) {
+                inviteFromInviter = true;
                 return true;
             }
 
@@ -95,37 +85,102 @@ class Bellboy {
 
         const user = message.mentions.users.first();
         if (!user) {
-            this.bot.reply(message, 'Geen lid gevonden, gebruik een \`@username\` in je bericht');
+            this.bot.reply(
+                message,
+                'Geen lid gevonden, gebruik een \`@username\` in je bericht'
+            );
+            return;
+        }
+
+        if (inviteFromInviter) {
+            message.member.roles.map(r => {
+                if (r.name.toLowerCase() === 'inviters-sittard') {
+                    this.setRegion('sittard', user, message);
+                }
+
+                if (r.name.toLowerCase() === 'inviters-geleen') {
+                    this.setRegion('geleen', user, message);
+                }
+            });
+
             return;
         }
 
         if (message.content.toLowerCase().includes('sittard')) {
-            // Do Sittard
+            this.setRegion('sittard', user, message);
             return;
         }
 
-        if (message.content.toLowerCase().includes('Geleen')) {
-            // Do Geleen
+        if (message.content.toLowerCase().includes('geleen')) {
+            this.setRegion('geleen', user, message);
             return;
         }
 
+        this.bot.reply(
+            message,
+            'Moderators dienen een regio te specificeren (Sittard/Geleen)'
+        );
     }
 
-    setTeam(team, member) {
+    setRegion(region, user, message) {
+        const role = this.findRole(region);
+        if (!role) {
+            this.bot.reply(message, 'Regio niet gevonden');
+            return;
+        }
+
+        const member = this.bot.getUserById(user.id);
+
+        if (!member) {
+            this.bot.reply(message, 'User niet gevonden');
+            return;
+        }
+
+        let channel = '';
+        switch (region) {
+            case 'sittard': channel = this.regionSittardChannel; break;
+            case 'geleen': channel = this.regionGeleenChannel; break;
+        }
+
+        Logger.log(
+            message.author.id,
+            message.author.username,
+            `[INVITE]  ${this.bot.getUsernameOfUserId(user.id)} invited to ${region}`,
+            Logger.getModLog()
+        );
+
+        member.addRole(role)
+            .then(_ => {
+                this.bot.send(
+                    channel,
+                    `**→ Welkom nieuw lid ${member.toString()}!**`
+                );
+            })
+            .catch(console.error);
+    }
+
+    setTeam(team, message) {
         const rId = this.findRole(team);
         
         if (!rId) {
             return;
         }
 
-        // TODO: test if user has team
+        const hasTeam = message.member.roles.some(r => {
+            return ['mystic', 'valor', 'instinct']
+                .includes(r.name.toLowerCase());
+        });
+
+        if (hasTeam) {
+            return;
+        }
 
         this.bot.reply(message, 'Team toegevoegd!');
-        member.addRole(rId).catch(console.error);
+        message.member.addRole(rId).catch(console.error);
     }
 
     findRole(roleName) {
-        const found = this.bot.getGuild().role.find(r => {
+        const found = this.bot.getGuild().roles.find(r => {
             return r.name.toLowerCase() === roleName;
         });
 

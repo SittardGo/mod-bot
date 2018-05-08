@@ -13,8 +13,6 @@ module.exports = {
                 name.toLowerCase().replace(/\s{2,}/g, ' ');
         });
 
-        console.log(foundCat)
-
         if (foundCat) {
             return foundCat.id;
         }

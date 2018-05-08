@@ -8,8 +8,6 @@ const Utils        = require('./Utils');
 
 const SUBSCRIBE_EMOJI = '👍';
 const STORE_FILE      = __dirname+'/../logs/subscribers.json';
-const MOD_LOG         = 'mod';
-const LOG_PREFIX      = '[SUBSCRIBER]: ';
 
 const MESSAGES = {
     'invalid_create': 'Ongeldig commando, gebruik: \n \`\`\`!create tekst: "Inschrijf tekst" '+
@@ -382,15 +380,15 @@ class ChannelSubscriber {
     }
 
     log(action, msgObj) {
-        action = (action) ? action+' command: ' : action;
-        const message = LOG_PREFIX+action+msgObj.content
+        action = (action) ? `[${action.toUpperCase()}] ` : action;
+        const message = action+msgObj.content
         
-        console.log(LOG_PREFIX+action+msgObj.content);
+        console.log(action+msgObj.content);
         Logger.log(
             msgObj.author.id,
             msgObj.author.username,
             message,
-            MOD_LOG
+            Logger.getModLog()
         )
     }
 }

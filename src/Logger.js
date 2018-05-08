@@ -1,15 +1,15 @@
 /* jshint esversion: 6 */ 
+// To log
+// - non-selfsub roles assignment removal
+
 const fs = require('fs');
 const LOG_LOCATION = __dirname+'/../logs/';
 
 const LOG_EXTENSION = '.log';
+const MOD_LOG = 'mod';
 
 class Logger {
-    constructor(bot) {
-        this.bot = bot;
-    }
-
-    static messageLog(bot) {
+    static initGlobalLog(bot) {
         bot.on('MESSAGE', (e, msgObj) => {
             if (bot.userHasRole(msgObj.member, 'bots')) {
                 return;
@@ -49,6 +49,10 @@ class Logger {
                 console.log(err)
             }
         )
+    }
+
+    static getModLog() {
+        return MOD_LOG;
     }
 }
 

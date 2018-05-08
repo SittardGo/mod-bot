@@ -8,7 +8,7 @@ const regex = {
     // Lobby command
     lobbycmd: /^!/,
     // Join from lobby command
-    joincmd: /^!\s*join\s*(sittard|geleen)/i,
+    joincmd: /^!\s*invite/i,
     escape: /[\-\[\]\/\{\}\(\)\*\+\?\.\\\^\$\|]/g,
 };
 

@@ -7,7 +7,7 @@ const Bellboy           = require('./Bellboy');
 
 const DEV_MODE = true;
 
-const BOT_STATUS = 'idle';
+const BOT_STATUS = 'invisible';
 
 class ModBot {
     constructor() {
@@ -32,15 +32,13 @@ class ModBot {
             this.bot = new SittardGoBot.Bot(this.config);
         }
 
-        this.bot.on('MESSAGE', this.receiveMessage.bind(this));
-
         this.bot.connect()
         .then(_ => {
-            // // Set the visibility of the bot
+            // Set the visibility of the bot
             this.bot.getClient().user.setStatus(BOT_STATUS);
             
             // Logger module
-            Logger.messageLog(this.bot);
+            Logger.initGlobalLog(this.bot);
 
             // Channel subscriber module
             new ChannelSubscriber(this.bot, this.config['channel-ids']);
@@ -48,14 +46,40 @@ class ModBot {
             // Lobby (Bellboy) module
             new Bellboy(this.bot, this.config);
 
+            this.initGlobalEvents();
+
         })
         .catch(e => console.log('error', e));
     }
 
-    receiveMessage(e, msgObj) {
-        if (this.bot.userHasRole(msgObj.member, 'bots')) {
-            return;
-        }
+    initGlobalEvents() {
+        this.bot.getClient().on('guildMemberRemove', (member) => {
+            Logger.log(
+                member.id,
+                member.user.username,
+                '[LEFT/KICK] this user has left / has been kicked',
+                Logger.getModLog()
+            )
+
+            this.bot.send(
+                'moderators',
+                `🚫 ${member.user.username} heeft de server verlaten`
+            );
+        });
+
+        this.bot.getClient().on('guildBanAdd', (g, user) => {
+            Logger.log(
+                user.id,
+                user.username,
+                '[BAN] this user has been banned',
+                Logger.getModLog()
+            )
+            
+            this.bot.send(
+                'moderators',
+                `⚠️ ${user.username} is gebanned`
+            );
+        });
     }
 }
 
