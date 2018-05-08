@@ -67,7 +67,6 @@ class Bellboy {
 
         let inviteFromInviter = false;
         const authRole = message.member.roles.filter(r => {
-            console.log(r.name.toLowerCase())
             if (this.modNames.includes(r.name.toLowerCase())) {
                 return true;
             }
