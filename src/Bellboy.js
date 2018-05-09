@@ -1,13 +1,20 @@
 /* jshint esversion: 6 */ 
-
-// TODO: Adding geleen / sittard role = message in region main channel
 const fs           = require('fs');
 
 const Logger       = require('./Logger');
 const MessageTests = require('./MessageTests');
 const Utils        = require('./Utils');
+const joinMessages = require('./joinMessages.json');
 
 const WELCOME_FILE = __dirname+'/welcome_message';
+const MESSAGES = {
+    NO_MEMBER_FOUND: 'Geen lid gevonden, gebruik een \`@username\` in je bericht',
+    MODS_NEED_REGION: 'Moderators dienen een regio te specificeren (Sittard/Geleen)',
+    REGION_NOT_FOUND: 'Regio niet gevonden',
+    USER_NOT_FOUND: 'User niet gevonden',
+    TEAM_ADDED: 'Team toegevoegd!',
+    REGION_ADDED: 'User toegevoegd aan {REGION}'
+};
 
 class Bellboy {
     constructor(bot, config) {
@@ -84,10 +91,7 @@ class Bellboy {
 
         const user = message.mentions.users.first();
         if (!user) {
-            this.bot.reply(
-                message,
-                'Geen lid gevonden, gebruik een \`@username\` in je bericht'
-            );
+            this.bot.reply(message, MESSAGES.NO_MEMBER_FOUND);
             return;
         }
 
@@ -115,23 +119,20 @@ class Bellboy {
             return;
         }
 
-        this.bot.reply(
-            message,
-            'Moderators dienen een regio te specificeren (Sittard/Geleen)'
-        );
+        this.bot.reply(message, MESSAGES.MODS_NEED_REGION);
     }
 
     setRegion(region, user, message) {
         const role = this.findRole(region);
         if (!role) {
-            this.bot.reply(message, 'Regio niet gevonden');
+            this.bot.reply(message, MESSAGES.REGION_NOT_FOUND);
             return;
         }
 
         const member = this.bot.getUserById(user.id);
 
         if (!member) {
-            this.bot.reply(message, 'User niet gevonden');
+            this.bot.reply(message, MESSAGES.USER_NOT_FOUND);
             return;
         }
 
@@ -148,12 +149,17 @@ class Bellboy {
             Logger.getModLog()
         );
 
+        const joinMsg = joinMessages[
+            Math.floor(Math.random() * joinMessages.length)
+        ].replace('{NAME}', member.toString());
+
         member.addRole(role)
             .then(_ => {
-                this.bot.send(
-                    channel,
-                    `**→ Welkom nieuw lid ${member.toString()}!**`
+                this.bot.reply(
+                    message,
+                    MESSAGES.REGION_ADDED.replace('{REGION}', region)
                 );
+                this.bot.send(channel, `**→ ${joinMsg}**`);
             })
             .catch(console.error);
     }
@@ -174,7 +180,7 @@ class Bellboy {
             return;
         }
 
-        this.bot.reply(message, 'Team toegevoegd!');
+        this.bot.reply(message, MESSAGES.TEAM_ADDED);
         message.member.addRole(rId).catch(console.error);
     }
 
