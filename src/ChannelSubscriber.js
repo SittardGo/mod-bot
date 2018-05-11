@@ -9,11 +9,19 @@ const Utils        = require('./Utils');
 const SUBSCRIBE_EMOJI = '👍';
 const STORE_FILE      = __dirname+'/../logs/subscribers.json';
 
+const DEFAULT_MODS_NAMES = [
+    'admin', 'mods-geleen', 'mods-sittard'
+];
+
 const MESSAGES = {
-    'invalid_create': 'Ongeldig commando, gebruik: \n \`\`\`!create tekst: "Inschrijf tekst" '+
-    ' channel: "channel-naam" rol: "rol naam"\`\`\` \nEen rol of een channel is verplicht. '+
-    'Bij een rol zonder een channel zal het channel dezelfde naam als de rol krijgen. '+
-    'Zonder een tekst wordt het channel niet zelf inschrijfbaar voor leden'
+    invalid_create: 'Ongeldig commando, gebruik: \n \`\`\`!create tekst: '+
+        '"Inschrijf tekst" channel: "channel-naam" rol: "rol naam"\`\`\` \n'+
+        'Een rol of een channel is verplicht. Bij een rol zonder een channel '+
+        'zal het channel dezelfde naam als de rol krijgen. '+
+        'Zonder een tekst wordt het channel niet zelf inschrijfbaar voor leden',
+    created: '\`create\` actie voltooid',
+    removed: '\`remove\` actie voltooid \n'+
+        '`(indien een channel nogsteeds zichtbaar is, herstart je discord client)`'
 }
 
 class ChannelSubscriber {
@@ -23,6 +31,16 @@ class ChannelSubscriber {
         this.modBotChannel = channelConfig['modbot-control'];
         this.subscribeChannel = channelConfig.subscribe;
         this.eventsCategory = channelConfig['events-category'];
+        this.mutedRoleId = Utils.getRoleIdByName('muted', this.bot.getGuild());
+        this.defaultMods = [];
+        DEFAULT_MODS_NAMES.map(mod => {
+            const rid = Utils.getRoleIdByName(mod, this.bot.getGuild());
+            if (!rid) {
+                return;
+            }
+
+            this.defaultMods.push(rid);
+        });
 
         // Bulk delete subscribe channel
         this.bot.getChannel(this.subscribeChannel).bulkDelete(80)
@@ -194,6 +212,7 @@ class ChannelSubscriber {
             });
 
             this.log('create', msgObj);
+            this.bot.reply(msgObj, MESSAGES.created);
         }).catch(e => {
             console.log(e)
             this.bot.send(this.modBotChannel, e.message);
@@ -208,11 +227,15 @@ class ChannelSubscriber {
         const everyone = this.bot.getGuild().roles.find('name', '@everyone');
         const perms = [
             { allow: ['VIEW_CHANNEL'], id: this.bot.getClient().user.id },
+            { deny: ['SEND_MESSAGES'], id: this.mutedRoleId }
         ];
 
-        // TODO for production:
-        // - add mods + admin
-        // - add muted
+        this.defaultMods.map(modId => {
+            perms.push(
+                { allow: ['MANAGE_MESSAGES'], id: modId }
+            );
+        });
+
         if (roleId) {
             perms.push({ allow: ['VIEW_CHANNEL'], id: roleId })
             perms.push({ deny: ['VIEW_CHANNEL'], id: everyone.id });
@@ -285,6 +308,7 @@ class ChannelSubscriber {
         this.store.splice(index, 1);
         this.commitStore();
         this.log('delete', msgObj);
+        this.bot.reply(msgObj, MESSAGES.removed);
     }
 
     callDelete(obj, name) {

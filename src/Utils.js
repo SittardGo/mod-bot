@@ -20,6 +20,20 @@ module.exports = {
         return false;
     },
 
+    getRoleIdByName(roleName, guild) {
+        roleName = roleName.toLowerCase().replace(' ', '-');
+
+        const foundRole = guild.roles.find(r => {
+            return r.name.toLowerCase().replace(' ', '-') === roleName;
+        });
+
+        if (!foundRole) {
+            return false;
+        }
+
+        return foundRole.id;
+    },
+
     removeTest(msgObj, test) {
         return msgObj.content
             .replace(MessageTests.getTest(test), '')
