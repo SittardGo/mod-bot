@@ -21,7 +21,7 @@ const MESSAGES = {
         'Zonder een tekst wordt het channel niet zelf inschrijfbaar voor leden',
     created: '\`create\` actie voltooid',
     removed: '\`remove\` actie voltooid \n'+
-        '`(indien een channel nogsteeds zichtbaar is, herstart je discord client)`'
+        '`(indien een channel nog zichtbaar is, herstart je discord client)`'
 }
 
 class ChannelSubscriber {
