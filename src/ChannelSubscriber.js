@@ -97,7 +97,11 @@ class ChannelSubscriber {
             if (fs.existsSync(STORE_FILE)) {
                 this.store = require(STORE_FILE);
             }
-        } catch {
+        } catch(e) {
+            console.log('init store error: ', e)
+        }
+
+        if (!this.store) {
             this.store = [];
         }
         
