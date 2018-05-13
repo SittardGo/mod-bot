@@ -26,7 +26,6 @@ const MESSAGES = {
 
 class ChannelSubscriber {
     constructor(bot, channelConfig) {
-        this.initState = true;
         this.bot = bot;
         this.modBotChannel = channelConfig['modbot-control'];
         this.subscribeChannel = channelConfig.subscribe;
@@ -53,15 +52,6 @@ class ChannelSubscriber {
         .then(_ => {
             this.initCreator();
             this.initSubscriber();
-            
-            // BUG: Dirty hack handleReaction is received
-            // and postponed to execute after this block
-            // so init state will be false. For now just
-            // delay initState because I don't want to work
-            // on this anymore
-            setTimeout(_=> {
-                this.initState = false;
-            }, 4000);
         });
     }
 
@@ -339,9 +329,8 @@ class ChannelSubscriber {
         );
     }
 
-    handleReactions(reaction) {
-        if (this.initState) {
-            // This doesn't work, see init
+    handleReactions(reaction, user) {
+        if (user.bot) {
             return;
         }
 
