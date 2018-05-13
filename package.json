@@ -10,7 +10,7 @@
   "license": "ISC",
   "dependencies": {
     "diff-arrays": "^1.0.0",
-    "sittard-go-bot": "^1.2.4"
+    "sittard-go-bot": "^1.2.5"
   },
   "optionalDependencies": {
     "bufferutil": "^3.0.5"
