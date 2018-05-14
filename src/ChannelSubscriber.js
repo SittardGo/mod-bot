@@ -125,7 +125,7 @@ class ChannelSubscriber {
     };
 
     createSubscriberChannel(msg, msgObj) {
-        msg = msg.split(/[:,',"]/);
+        msg = msg.split(/[:'"]/);
         msg = msg.filter(m => m.trim());
         let cmd = {}, i = 0, prevC = '';
 
