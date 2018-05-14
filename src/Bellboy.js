@@ -26,6 +26,11 @@ class Bellboy {
         this.modNames = config['mod-role-names'];
         this.inviters = config['inviter-role-names'];
 
+        this.bot.on('RECONNECT', this.initEvents.bind(this));
+        this.initEvents();
+    }
+
+    initEvents() {
         // Member joined
         this.bot.getClient().on(
             'guildMemberAdd',

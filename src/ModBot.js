@@ -5,7 +5,7 @@ const Logger            = require('./Logger');
 const ChannelSubscriber = require('./ChannelSubscriber');
 const Bellboy           = require('./Bellboy');
 
-const DEV_MODE = false;
+const DEV_MODE = true;
 
 const BOT_STATUS = 'invisible';
 
@@ -34,11 +34,7 @@ class ModBot {
 
         this.bot.connect()
         .then(_ => {
-            // Set the visibility of the bot
-            this.bot.getClient().user.setStatus(BOT_STATUS);
-            
-            // Logger module
-            Logger.initGlobalLog(this.bot);
+            this.initGlobal();
 
             // Channel subscriber module
             new ChannelSubscriber(this.bot, this.config['channel-ids']);
@@ -46,13 +42,17 @@ class ModBot {
             // Lobby (Bellboy) module
             new Bellboy(this.bot, this.config);
 
-            this.initGlobalEvents();
-
+            this.bot.on('RECONNECT', this.initGlobal.bind(this));
         })
         .catch(e => console.log('error', e));
     }
 
-    initGlobalEvents() {
+    initGlobal() {
+        // Set the visibility of the bot
+        this.bot.getClient().user.setStatus(BOT_STATUS);
+
+        Logger.initGlobalLog(this.bot);
+
         this.bot.getClient().on('guildMemberRemove', (member) => {
             Logger.log(
                 member.id,

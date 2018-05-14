@@ -41,6 +41,11 @@ class ChannelSubscriber {
             this.defaultMods.push(rid);
         });
 
+        this.bot.on('RECONNECT', this.initModule.bind(this));
+        this.initModule();
+    }
+
+    initModule() {
         // Bulk delete subscribe channel
         this.bot.getChannel(this.subscribeChannel).bulkDelete(80)
         .then(messages => {
@@ -81,7 +86,7 @@ class ChannelSubscriber {
         });
     }
 
-    initStore() {
+    async initStore() {
         try {
             // include the store
             if (fs.existsSync(STORE_FILE)) {
@@ -95,33 +100,29 @@ class ChannelSubscriber {
             this.store = [];
         }
         
-        const reApplyMessage = message => {
-            return new Promise((res, rej) => {
-                this.bot
-                .send(this.subscribeChannel, message.text)
-                .then(m => {
-                    message.id = m.id;
-                    return m.react('👍');
-                }).then(_ => {
-                    res();
-                });
-            });
-        };
-
         // Restore all the messages in the store
-        const promises = this.store.map(sub => {
-            if (!sub.message.id) {
-                return Promise.resolve();
+        for (let sub in this.store) {
+            if (this.store[sub].message.id) {
+                this.store[sub].message.id =
+                    await this.reApplyMessage(this.store[sub].message);
             }
-
-            return reApplyMessage(sub.message);
-        });
+        }
         
-        return Promise.all(promises)
-            .then(_ => {
-                this.commitStore();
-            });
+        this.commitStore();
     }
+
+    reApplyMessage(message) {
+        return new Promise((resolve) => {
+            this.bot
+            .send(this.subscribeChannel, message.text)
+            .then(m => {
+                return m.react('👍');
+            })
+            .then(r => {
+                resolve(r.message.id);
+            })
+        });
+    };
 
     createSubscriberChannel(msg, msgObj) {
         msg = msg.split(/[:,',"]/);
@@ -329,7 +330,7 @@ class ChannelSubscriber {
         );
     }
 
-    handleReactions(reaction, user) {
+    async handleReactions(reaction, user) {
         if (user.bot) {
             return;
         }
@@ -373,15 +374,21 @@ class ChannelSubscriber {
         this.commitStore();
         
         // Update the users remove / add the roles
-        diff.lhs.map(uId => {
-            this.bot.getUserById(uId).addRole(entry.role.id)
-              .catch(console.error);
-        });
+        for (let i in diff.lhs) {
+            console.log('adding role for uid', diff.lhs[i]);
+            await this.bot
+                .getUserById(diff.lhs[i])
+                .addRole(entry.role.id)
+                .catch(console.error);
+        }
 
-        diff.rhs.map(uId => {
-            this.bot.getUserById(uId).removeRole(entry.role.id)
-              .catch(console.error);
-        });
+        for (let i in diff.rhs) {
+            console.log('removing role for uid', diff.rhs[i]);
+            await this.bot
+                .getUserById(diff.rhs[i])
+                .removeRole(entry.role.id)
+                .catch(console.error);
+        }
     }
 
     addToStore(storeObj) {
