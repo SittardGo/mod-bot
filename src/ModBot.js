@@ -32,8 +32,8 @@ class ModBot {
             this.bot = new SittardGoBot.Bot(this.config);
         }
 
-        this.bot.connect()
-        .then(_ => {
+        this.bot.connect();
+        this.bot.on('READY', _ => {
             this.initGlobal();
 
             // Channel subscriber module
@@ -41,10 +41,7 @@ class ModBot {
 
             // Lobby (Bellboy) module
             new Bellboy(this.bot, this.config);
-
-            this.bot.on('RECONNECT', this.initGlobal.bind(this));
-        })
-        .catch(e => console.log('error', e));
+        });
     }
 
     initGlobal() {

@@ -1,6 +1,5 @@
 /* jshint esversion: 6 */ 
 const fs           = require('fs');
-const differ       = require('diff-arrays');
 
 const Logger       = require('./Logger');
 const MessageTests = require('./MessageTests');
@@ -60,7 +59,8 @@ class ChannelSubscriber {
         });
     }
 
-    initCreator() {       
+    initCreator() {    
+        console.log('Subscribing to message command events');
         this.bot.on('MESSAGE', (e, msgObj) => {
             // Only from modbot channel
             if (msgObj.channel.id !== this.modBotChannel) {
@@ -87,6 +87,7 @@ class ChannelSubscriber {
     }
 
     async initStore() {
+        console.log('store init');
         try {
             // include the store
             if (fs.existsSync(STORE_FILE)) {
@@ -108,15 +109,33 @@ class ChannelSubscriber {
             }
         }
         
+        console.log('commiting the *init*store');
         this.commitStore();
+    }
+
+
+    initSubscriber() {
+        console.log('Start listening for reaction events...');
+        // Adding a reaction
+        this.bot.getClient().on(
+            'messageReactionAdd', (r, u) => {
+                this.handleReactions.call(this, 'add', r, u);
+        });
+        
+        // Removing a reaction
+        this.bot.getClient().on(
+            'messageReactionRemove', (r, u) => {
+                this.handleReactions.call(this, 'remove', r, u);
+        });
     }
 
     reApplyMessage(message) {
         return new Promise((resolve) => {
+            console.log('reapplying: ', message.text);
             this.bot
             .send(this.subscribeChannel, message.text)
             .then(m => {
-                return m.react('👍');
+                return m.react(SUBSCRIBE_EMOJI);
             })
             .then(r => {
                 resolve(r.message.id);
@@ -190,7 +209,7 @@ class ChannelSubscriber {
             }
             
             messageId = message.id;
-            return message.react('👍');
+            return message.react(SUBSCRIBE_EMOJI);
         })
         // Store the object
         .then(_ => {
@@ -202,8 +221,7 @@ class ChannelSubscriber {
             this.addToStore({
                 channel: { text: fu[0], id: fu[1] },
                 role:    { text: fu[2], id: fu[3] },
-                message: { text: fu[4], id: fu[5] },
-                users:   []
+                message: { text: fu[4], id: fu[5] }
             });
 
             this.log('create', msgObj);
@@ -316,21 +334,7 @@ class ChannelSubscriber {
         });
     }
 
-    initSubscriber() {
-        // Adding a reaction
-        this.bot.getClient().on(
-            'messageReactionAdd',
-            this.handleReactions.bind(this)
-        );
-        
-        // Removing a reaction
-        this.bot.getClient().on(
-            'messageReactionRemove',
-            this.handleReactions.bind(this)
-        );
-    }
-
-    async handleReactions(reaction, user) {
+    handleReactions(action, reaction, user) {
         if (user.bot) {
             return;
         }
@@ -355,39 +359,26 @@ class ChannelSubscriber {
             console.log(`subscribe message ${reaction.message.id} not found`);
             return;
         }
-
-        let newSubs = reaction.users
-            .array().filter(u => !u.bot)
-            .map(user => user.id);
-
-        // Create a diff for adding and removing
-        // lhs will be new, rgh should be removed
-        const diff = differ(newSubs, entry.users);
-
-        // Remove users from store
-        const users = entry.users.filter(u => {
-            return !diff.rhs.includes(u);
-        })
-
-        // Add users to store
-        entry.users = users.concat(diff.lhs);
-        this.commitStore();
         
-        // Update the users remove / add the roles
-        for (let i in diff.lhs) {
-            console.log('adding role for uid', diff.lhs[i]);
-            await this.bot
-                .getUserById(diff.lhs[i])
-                .addRole(entry.role.id)
-                .catch(console.error);
-        }
+        console.log(
+            'Reaction event:',
+            action, user.username, entry.channel.text
+        );
 
-        for (let i in diff.rhs) {
-            console.log('removing role for uid', diff.rhs[i]);
-            await this.bot
-                .getUserById(diff.rhs[i])
-                .removeRole(entry.role.id)
-                .catch(console.error);
+        // Update the user
+        switch(action) {
+            case 'add':
+                this.bot
+                    .getUserById(user.id)
+                    .addRole(entry.role.id)
+                    .catch(console.error);
+                break;
+            case 'remove':
+                this.bot
+                    .getUserById(user.id)
+                    .removeRole(entry.role.id)
+                    .catch(console.error);
+                break;
         }
     }
 
