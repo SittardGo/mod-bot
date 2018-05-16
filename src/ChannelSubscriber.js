@@ -245,7 +245,7 @@ class ChannelSubscriber {
 
         this.defaultMods.map(modId => {
             perms.push(
-                { allow: ['MANAGE_MESSAGES'], id: modId }
+                { allow: ['VIEW_CHANNEL', 'MANAGE_MESSAGES'], id: modId }
             );
         });
 
