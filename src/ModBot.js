@@ -5,7 +5,7 @@ const Logger            = require('./Logger');
 const ChannelSubscriber = require('./ChannelSubscriber');
 const Bellboy           = require('./Bellboy');
 
-const DEV_MODE = false;
+const DEV_MODE = true;
 
 const BOT_STATUS = 'invisible';
 
@@ -32,15 +32,17 @@ class ModBot {
             this.bot = new SittardGoBot.Bot(this.config);
         }
 
-        this.bot.connect();
-        this.bot.on('READY', _ => {
-            this.initGlobal();
+        this.bot.connect()
+        .then(_ => {
+            this.initGlobal();          
 
             // Channel subscriber module
             new ChannelSubscriber(this.bot, this.config['channel-ids']);
 
             // Lobby (Bellboy) module
             new Bellboy(this.bot, this.config);
+
+            this.bot.on('RECONNECT', this.initGlobal.bind(this));
         });
     }
 
