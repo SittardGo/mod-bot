@@ -28,6 +28,8 @@ class ModBot {
             });
 
         } else {
+            // I'm desperate
+            require('http').globalAgent.maxSockets = 200;
             this.config = require(__dirname+'./../config.json');
             this.bot = new SittardGoBot.Bot(this.config);
         }
