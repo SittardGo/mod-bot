@@ -1,4 +1,4 @@
-/* jshint esversion: 6 */ 
+/* jshint esversion: 6 */
 const fs           = require('fs');
 
 const Logger       = require('./Logger');
@@ -59,7 +59,7 @@ class ChannelSubscriber {
         });
     }
 
-    initCreator() {    
+    initCreator() {
         console.log('Subscribing to message command events');
         this.bot.on('MESSAGE', (e, msgObj) => {
             // Only from modbot channel
@@ -100,7 +100,7 @@ class ChannelSubscriber {
         if (!this.store) {
             this.store = [];
         }
-        
+
         // Restore all the messages in the store
         for (let sub in this.store) {
             if (this.store[sub].message.id) {
@@ -108,7 +108,7 @@ class ChannelSubscriber {
                     await this.reApplyMessage(this.store[sub].message);
             }
         }
-        
+
         console.log('commiting the *init*store');
         this.commitStore();
     }
@@ -121,7 +121,7 @@ class ChannelSubscriber {
             'messageReactionAdd', (r, u) => {
                 this.handleReactions.call(this, 'add', r, u);
         });
-        
+
         // Removing a reaction
         this.bot.getClient().on(
             'messageReactionRemove', (r, u) => {
@@ -172,7 +172,7 @@ class ChannelSubscriber {
         if (!cmd.category) {
             cmd.category = this.eventsCategory
         }
-        
+
         let roleId = 0, channelId = 0, messageId = 0;
 
         // Create the role
@@ -207,7 +207,7 @@ class ChannelSubscriber {
             if (!message) {
                 return Promise.resolve();
             }
-            
+
             messageId = message.id;
             return message.react(SUBSCRIBE_EMOJI);
         })
@@ -270,7 +270,7 @@ class ChannelSubscriber {
     removeSubscriberChannel(msg, msgObj) {
         let index = false;
         const entry = this.store.find((sub, i)=> {
-            
+
             if (sub.role.id &&
                 (msg.toLowerCase() === sub.role.text.toLowerCase())
             ) {
@@ -292,7 +292,7 @@ class ChannelSubscriber {
             this.bot.send(this.modBotChannel, 'Geen rol of channel gevonden');
             return;
         }
-        
+
         if (entry.channel.id) {
             const channel = this.bot.getChannel(entry.channel.id);
             if (channel) {
@@ -359,7 +359,7 @@ class ChannelSubscriber {
             console.log(`subscribe message ${reaction.message.id} not found`);
             return;
         }
-        
+
         console.log(
             'Reaction event:',
             action, user.username, entry.channel.text
@@ -397,7 +397,7 @@ class ChannelSubscriber {
     log(action, msgObj) {
         action = (action) ? `[${action.toUpperCase()}] ` : action;
         const message = action+msgObj.content
-        
+
         console.log(action+msgObj.content);
         Logger.log(
             msgObj.author.id,

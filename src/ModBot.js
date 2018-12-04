@@ -1,4 +1,4 @@
-/* jshint esversion: 6 */ 
+/* jshint esversion: 6 */
 const fs                = require('fs');
 const SittardGoBot      = require('sittard-go-bot');
 const Logger            = require('./Logger');
@@ -18,7 +18,7 @@ class ModBot {
             new SittardGoBot.Bot();
             process.exit(0);
         }
-        
+
         if (DEV_MODE) {
             this.config = require(__dirname+'/../config.dev.json')
             this.bot = new SittardGoBot.Bot(this.config);
@@ -36,7 +36,7 @@ class ModBot {
 
         this.bot.connect()
         .then(_ => {
-            this.initGlobal();          
+            this.initGlobal();
 
             // Channel subscriber module
             new ChannelSubscriber(this.bot, this.config['channel-ids']);
@@ -75,7 +75,7 @@ class ModBot {
                 '[BAN] this user has been banned',
                 Logger.getModLog()
             )
-            
+
             this.bot.send(
                 'moderators',
                 `⚠️ ${user.username} is gebanned`
