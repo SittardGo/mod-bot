@@ -13,14 +13,14 @@ const DEFAULT_MODS_NAMES = [
 ];
 
 const MESSAGES = {
-    invalid_create: 'Ongeldig commando, gebruik: \n \`\`\`!create tekst: '+
-        '"Inschrijf tekst" channel: "channel-naam" rol: "rol naam"\`\`\` \n'+
-        'Een rol of een channel is verplicht. Bij een rol zonder een channel '+
-        'zal het channel dezelfde naam als de rol krijgen. '+
-        'Zonder een tekst wordt het channel niet zelf inschrijfbaar voor leden',
+    invalid_create: 'Ongeldig commando, gebruik: \n \`\`\`!create tekst '+
+        '"Inschrijf tekst" kanaal "kanaal-naam" rol "rol naam"\`\`\` \n'+
+        'Een rol of een kanaal is verplicht. '+
+        'Zonder een tekst wordt het kanaal niet inschrijfbaar voor leden',
+    list: '{ROLE} - {CHANNEL} : {MESSAGE} \n',
     created: '\`create\` actie voltooid',
     removed: '\`remove\` actie voltooid \n'+
-        '`(indien een channel nog zichtbaar is, herstart je discord client)`'
+        '`(indien een kanaal nog zichtbaar is, herstart je discord client)`'
 }
 
 class ChannelSubscriber {
@@ -82,6 +82,34 @@ class ChannelSubscriber {
                 this.removeSubscriberChannel(
                     Utils.removeTest(msgObj, 'removeSub'), msgObj
                 );
+            }
+
+            if (MessageTests.is('list', msgObj.content)) {
+                let response = '';
+                this.store.map(i => {
+                    let c = MESSAGES.list;
+                    if (i.role.text) {
+                        c = c.replace('{ROLE}', i.role.text);
+                    } else {
+                        c = c.replace('{ROLE}', '');
+                    }
+
+                    if (i.channel.text) {
+                        c = c.replace('{CHANNEL}', i.channel.text);
+                    } else {
+                        c = c.replace('{CHANNEL}', '');
+                    }
+
+                    if (i.message.text) {
+                        c = c.replace('{MESSAGE}', i.message.text);
+                    } else {
+                        c = c.replace('{MESSAGE}', '');
+                    }
+
+                    response += c;
+                })
+
+                this.bot.reply(msgObj, response);
             }
         });
     }

@@ -7,7 +7,7 @@ module.exports = {
             .getGuild()
             .channels
             .findAll('type', 'category');
-        
+
         const foundCat = cats.find(c => {
             return c.name.toLowerCase().replace(/\s{2,}/g, ' ') ===
                 name.toLowerCase().replace(/\s{2,}/g, ' ');
@@ -45,7 +45,7 @@ module.exports = {
             'tekst', 'text',
             'categorie', 'category',
             'role', 'rol',
-            'channel'
+            'channel', 'kanaal'
         ]
 
         for (let i in message) {
@@ -57,7 +57,7 @@ module.exports = {
         // return renamed
         const renamed = {};
         Object.keys(message).map(key => {
-            if (key === 'tekst') { 
+            if (key === 'tekst') {
                 renamed.text = message.tekst;
             } else if (key === 'categorie') {
                 renamed.category = message.categorie;
@@ -74,9 +74,9 @@ module.exports = {
             return false;
         }
 
-        if (renamed.role && !renamed.channel) {
-            renamed.channel = renamed.role;
-        }
+        // if (renamed.role && !renamed.channel) {
+        //     renamed.channel = renamed.role;
+        // }
 
         if (renamed.channel) {
             renamed.channel = this.formatChannelName(renamed.channel);
