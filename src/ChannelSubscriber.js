@@ -172,7 +172,7 @@ class ChannelSubscriber {
     };
 
     createSubscriberChannel(msg, msgObj) {
-        msg = msg.split(/[:'"]/);
+        msg = msg.split(/['"]/);
         msg = msg.filter(m => m.trim());
         let cmd = {}, i = 0, prevC = '';
 
@@ -186,7 +186,10 @@ class ChannelSubscriber {
             i++;
         });
 
+        console.log(cmd)
         cmd = Utils.checkCreateMessage(cmd);
+        console.log('------------')
+        console.log(cmd)
 
         if (!cmd) {
             this.bot.reply(msgObj, MESSAGES.invalid_create);
