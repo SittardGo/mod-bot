@@ -186,10 +186,7 @@ class ChannelSubscriber {
             i++;
         });
 
-        console.log(cmd)
         cmd = Utils.checkCreateMessage(cmd);
-        console.log('------------')
-        console.log(cmd)
 
         if (!cmd) {
             this.bot.reply(msgObj, MESSAGES.invalid_create);
