@@ -5,7 +5,7 @@ const Logger            = require('./Logger');
 const ChannelSubscriber = require('./ChannelSubscriber');
 const Bellboy           = require('./Bellboy');
 
-const DEV_MODE = false;
+const DEV_MODE = true;
 
 const BOT_STATUS = 'invisible';
 

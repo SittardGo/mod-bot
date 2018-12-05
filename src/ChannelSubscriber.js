@@ -85,8 +85,7 @@ class ChannelSubscriber {
             }
 
             if (MessageTests.is('list', msgObj.content)) {
-                let response = '';
-                this.store.map(i => {
+                this.store.map(async i => {
                     let c = MESSAGES.list;
                     if (i.role.text) {
                         c = c.replace('{ROLE}', i.role.text);
@@ -106,10 +105,8 @@ class ChannelSubscriber {
                         c = c.replace('{MESSAGE}', '');
                     }
 
-                    response += c;
+                    await this.bot.reply(msgObj, c);
                 })
-
-                this.bot.reply(msgObj, response);
             }
         });
     }

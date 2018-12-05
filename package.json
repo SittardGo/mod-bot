@@ -9,7 +9,7 @@
   "author": "",
   "license": "ISC",
   "dependencies": {
-    "sittard-go-bot": "^1.2.8"
+    "sittard-go-bot": "^1.2.10"
   },
   "optionalDependencies": {
     "bufferutil": "^3.0.5"
